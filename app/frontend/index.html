@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student Grade Management System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh}
+.hidden{display:none!important}
+/* Login */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e)}
+.login-box{background:#fff;border-radius:16px;padding:2.5rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.login-box h1{font-size:1.4rem;margin-bottom:0.3rem;color:#1a1a2e}
+.login-box p{color:#666;font-size:0.9rem;margin-bottom:1.5rem}
+.form-group{margin-bottom:1rem}
+.form-group label{display:block;font-size:0.8rem;font-weight:600;margin-bottom:0.4rem;color:#555}
+.form-group input,.form-group select{width:100%;padding:0.7rem 1rem;border:1.5px solid #e0e0e0;border-radius:8px;font-size:0.95rem;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{border-color:#4361ee}
+.btn{padding:0.75rem 1.5rem;border:none;border-radius:8px;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:#4361ee;color:#fff;width:100%}
+.btn-primary:hover{background:#3451d1}
+.btn-sm{padding:0.4rem 0.9rem;font-size:0.82rem}
+.btn-success{background:#06d6a0;color:#fff}
+.btn-danger{background:#ef233c;color:#fff}
+.btn-outline{background:transparent;border:1.5px solid #4361ee;color:#4361ee}
+.error-msg{background:#fee;color:#c00;padding:0.6rem 1rem;border-radius:6px;font-size:0.85rem;margin-bottom:1rem}
+/* Layout */
+#app{display:flex;min-height:100vh}
+nav{width:240px;background:#1a1a2e;color:#fff;padding:1.5rem 0;flex-shrink:0;display:flex;flex-direction:column}
+nav .brand{padding:0 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1)}
+nav .brand h2{font-size:1rem;color:#7ae7c7}
+nav .brand p{font-size:0.75rem;color:#aaa;margin-top:2px}
+nav ul{list-style:none;padding:1rem 0;flex:1}
+nav ul li a{display:flex;align-items:center;gap:10px;padding:0.75rem 1.5rem;color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;transition:all .2s;border-left:3px solid transparent}
+nav ul li a:hover,nav ul li a.active{background:rgba(255,255,255,0.08);color:#fff;border-left-color:#4361ee}
+nav .user-info{padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.1);font-size:0.8rem;color:#aaa}
+nav .user-info strong{color:#fff;display:block;margin-bottom:2px}
+.main{flex:1;padding:2rem;overflow-y:auto}
+.page-title{font-size:1.4rem;font-weight:700;margin-bottom:1.5rem;color:#1a1a2e}
+/* Cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
+.stat-card{background:#fff;border-radius:12px;padding:1.2rem;border-left:4px solid #4361ee}
+.stat-card.green{border-left-color:#06d6a0}
+.stat-card.red{border-left-color:#ef233c}
+.stat-card.amber{border-left-color:#ffd166}
+.stat-card .label{font-size:0.78rem;color:#888;margin-bottom:4px}
+.stat-card .value{font-size:1.8rem;font-weight:700;color:#1a1a2e}
+/* Table */
+.card{background:#fff;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.card h3{font-size:1rem;font-weight:600;margin-bottom:1rem;color:#333}
+table{width:100%;border-collapse:collapse;font-size:0.88rem}
+th{text-align:left;padding:0.6rem 0.8rem;background:#f8f9fa;color:#555;font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:.04em}
+td{padding:0.7rem 0.8rem;border-bottom:1px solid #f0f0f0;color:#333}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.grade-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700}
+.grade-O{background:#d1fae5;color:#065f46}
+.grade-Ap{background:#dbeafe;color:#1e40af}
+.grade-A{background:#e0f2fe;color:#075985}
+.grade-Bp{background:#fef9c3;color:#713f12}
+.grade-B{background:#fef3c7;color:#92400e}
+.grade-C{background:#fed7aa;color:#9a3412}
+.grade-F{background:#fee2e2;color:#991b1b}
+/* Form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group.full{grid-column:1/-1}
+.form-actions{margin-top:1.2rem;display:flex;gap:0.8rem}
+/* Alert */
+.alert{padding:0.8rem 1rem;border-radius:8px;margin-bottom:1rem;font-size:0.88rem}
+.alert-success{background:#d1fae5;color:#065f46}
+.alert-error{background:#fee2e2;color:#991b1b}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Student Grade System</h1>
+    <p>Sign in to your account</p>
+    <div id="login-error" class="error-msg hidden"></div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@college.edu" value="admin@college.edu"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Password" value="password"/>
+    </div>
+    <div class="form-group">
+      <label>Demo accounts</label>
+      <select id="demo-select" onchange="fillDemo(this.value)">
+        <option value="">— select demo user —</option>
+        <option value="admin">Admin (admin@college.edu)</option>
+        <option value="teacher">Teacher (priya@college.edu)</option>
+        <option value="student">Student (arun@college.edu)</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="login()">Sign In</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <nav>
+    <div class="brand">
+      <h2>GradeMS</h2>
+      <p>Grade Management System</p>
+    </div>
+    <ul id="nav-links"></ul>
+    <div class="user-info">
+      <strong id="nav-user-name"></strong>
+      <span id="nav-user-role"></span><br>
+      <a href="#" onclick="logout()" style="color:#ef233c;font-size:0.8rem">Sign out</a>
+    </div>
+  </nav>
+  <div class="main">
+    <div id="alert-box" class="hidden"></div>
+    <div id="page-dashboard" class="hidden">
+      <div class="page-title">Dashboard</div>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div class="card">
+        <h3>Grade distribution</h3>
+        <div id="grade-chart" style="display:flex;gap:8px;align-items:flex-end;height:120px;margin-top:1rem"></div>
+      </div>
+      <div class="card">
+        <h3>Top 5 students</h3>
+        <table><thead><tr><th>Name</th><th>Roll No.</th><th>Department</th><th>Avg %</th></tr></thead>
+        <tbody id="top-students-table"></tbody></table>
+      </div>
+    </div>
+
+    <div id="page-results" class="hidden">
+      <div class="page-title">My Results</div>
+      <div class="stats-grid" id="my-stats"></div>
+      <div class="card">
+        <h3>Semester results</h3>
+        <table><thead><tr><th>Subject</th><th>Code</th><th>Marks</th><th>Max</th><th>%</th><th>Grade</th><th>Semester</th></tr></thead>
+        <tbody id="my-results-table"></tbody></table>
+      </div>
+    </div>
+
+    <div id="page-students" class="hidden">
+      <div class="page-title">All Students</div>
+      <div class="card">
+        <table><thead><tr><th>Name</th><th>Roll No.</th><th>Department</th><th>Year</th><th>Action</th></tr></thead>
+        <tbody id="students-table"></tbody></table>
+      </div>
+    </div>
+
+    <div id="page-enter-result" class="hidden">
+      <div class="page-title">Enter / Update Result</div>
+      <div class="card">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Student</label>
+            <select id="res-student"></select>
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <select id="res-subject"></select>
+          </div>
+          <div class="form-group">
+            <label>Marks Obtained</label>
+            <input type="number" id="res-marks" min="0" max="100" placeholder="e.g. 78"/>
+          </div>
+          <div class="form-group">
+            <label>Max Marks</label>
+            <input type="number" id="res-max" value="100"/>
+          </div>
+          <div class="form-group">
+            <label>Semester</label>
+            <input type="number" id="res-sem" min="1" max="8" placeholder="e.g. 3"/>
+          </div>
+          <div class="form-group">
+            <label>Exam Date</label>
+            <input type="date" id="res-date"/>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm" onclick="submitResult()">Save Result</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-student-detail" class="hidden">
+      <div class="page-title" id="detail-title">Student Results</div>
+      <div class="card">
+        <table><thead><tr><th>Subject</th><th>Code</th><th>Marks</th><th>Max</th><th>%</th><th>Grade</th><th>Semester</th></tr></thead>
+        <tbody id="detail-table"></tbody></table>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('students')">← Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.API_URL || '';
+let token = '', userRole = '', userName = '';
+
+const navConfig = {
+  admin:   [{label:'Dashboard',page:'dashboard'},{label:'Students',page:'students'},{label:'Enter Result',page:'enter-result'}],
+  teacher: [{label:'Dashboard',page:'dashboard'},{label:'Students',page:'students'},{label:'Enter Result',page:'enter-result'}],
+  student: [{label:'My Results',page:'results'}],
+};
+
+function fillDemo(role) {
+  const map = { admin:['admin@college.edu','password'], teacher:['priya@college.edu','password'], student:['arun@college.edu','password'] };
+  if (map[role]) { document.getElementById('login-email').value=map[role][0]; document.getElementById('login-password').value=map[role][1]; }
+}
+
+async function login() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+  try {
+    const r = await fetch(`${API}/api/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password}) });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.error; errEl.classList.remove('hidden'); return; }
+    token = d.token; userRole = d.role; userName = d.name;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('nav-user-name').textContent = userName;
+    document.getElementById('nav-user-role').textContent = userRole.charAt(0).toUpperCase()+userRole.slice(1);
+    buildNav();
+    if (userRole === 'student') { showPage('results'); loadMyResults(); }
+    else { showPage('dashboard'); loadDashboard(); }
+  } catch(e) { errEl.textContent = 'Connection error'; errEl.classList.remove('hidden'); }
+}
+
+function logout() { token=''; document.getElementById('app').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); }
+
+function buildNav() {
+  const ul = document.getElementById('nav-links'); ul.innerHTML='';
+  (navConfig[userRole]||[]).forEach(item => {
+    ul.innerHTML += `<li><a href="#" onclick="navTo('${item.page}')">${item.label}</a></li>`;
+  });
+}
+
+function navTo(page) {
+  if (page==='dashboard') loadDashboard();
+  else if (page==='students') loadStudents();
+  else if (page==='enter-result') loadEnterResult();
+  else if (page==='results') loadMyResults();
+  showPage(page);
+}
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(el=>el.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  document.querySelectorAll('nav ul li a').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('onclick')?.includes(`'${page}'`));
+  });
+}
+
+function showAlert(msg, type='success') {
+  const el = document.getElementById('alert-box');
+  el.className = `alert alert-${type}`;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(()=>el.classList.add('hidden'), 4000);
+}
+
+async function api(path, opts={}) {
+  const r = await fetch(`${API}${path}`, { ...opts, headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}`, ...(opts.headers||{}) } });
+  return r.json();
+}
+
+function gradeClass(g) { return 'grade-'+(g==='A+'?'Ap':g==='B+'?'Bp':g); }
+
+async function loadDashboard() {
+  const d = await api('/api/analytics/summary');
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="label">Total students</div><div class="value">${d.totals.total_students}</div></div>
+    <div class="stat-card green"><div class="label">Results entered</div><div class="value">${d.totals.total_results}</div></div>
+    <div class="stat-card amber"><div class="label">Average %</div><div class="value">${d.totals.avg_percentage}%</div></div>
+    <div class="stat-card red"><div class="label">Failed</div><div class="value">${d.totals.failed_count}</div></div>`;
+  const maxCount = Math.max(...d.gradeBreakdown.map(g=>g.count), 1);
+  document.getElementById('grade-chart').innerHTML = d.gradeBreakdown.map(g=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+      <span style="font-size:0.75rem;color:#555">${g.count}</span>
+      <div style="width:100%;background:#4361ee;border-radius:4px 4px 0 0;height:${Math.round((g.count/maxCount)*90)}px"></div>
+      <span class="grade-badge grade-${g.grade==='A+'?'Ap':g.grade==='B+'?'Bp':g.grade}">${g.grade}</span>
+    </div>`).join('');
+  document.getElementById('top-students-table').innerHTML = d.topStudents.map(s=>`
+    <tr><td>${s.name}</td><td>${s.roll_number}</td><td>${s.department}</td><td><strong>${s.avg_pct}%</strong></td></tr>`).join('');
+}
+
+async function loadStudents() {
+  const students = await api('/api/students');
+  document.getElementById('students-table').innerHTML = students.map(s=>`
+    <tr><td>${s.name}</td><td>${s.roll_number}</td><td>${s.department}</td><td>Year ${s.year}</td>
+    <td><button class="btn btn-outline btn-sm" onclick="viewStudent(${s.id},'${s.name}')">View Results</button></td></tr>`).join('');
+}
+
+async function viewStudent(id, name) {
+  const results = await api(`/api/students/${id}/results`);
+  document.getElementById('detail-title').textContent = `Results — ${name}`;
+  document.getElementById('detail-table').innerHTML = results.map(r=>`
+    <tr><td>${r.subject}</td><td>${r.code}</td><td>${r.marks_obtained}</td><td>${r.max_marks}</td>
+    <td>${((r.marks_obtained/r.max_marks)*100).toFixed(1)}%</td>
+    <td><span class="grade-badge ${gradeClass(r.grade)}">${r.grade}</span></td>
+    <td>Sem ${r.semester}</td></tr>`).join('');
+  showPage('student-detail');
+}
+
+async function loadMyResults() {
+  const me = await api('/api/students/me');
+  const results = await api(`/api/students/${me.id}/results`);
+  const avg = results.length ? (results.reduce((s,r)=>(s + r.marks_obtained/r.max_marks*100), 0)/results.length).toFixed(1) : 0;
+  const passed = results.filter(r=>r.grade!=='F').length;
+  document.getElementById('my-stats').innerHTML = `
+    <div class="stat-card"><div class="label">Roll No.</div><div class="value" style="font-size:1.2rem">${me.roll_number}</div></div>
+    <div class="stat-card green"><div class="label">Subjects</div><div class="value">${results.length}</div></div>
+    <div class="stat-card amber"><div class="label">Average %</div><div class="value">${avg}%</div></div>
+    <div class="stat-card ${passed===results.length?'green':'red'}"><div class="label">Passed</div><div class="value">${passed}/${results.length}</div></div>`;
+  document.getElementById('my-results-table').innerHTML = results.map(r=>`
+    <tr><td>${r.subject}</td><td>${r.code}</td><td>${r.marks_obtained}</td><td>${r.max_marks}</td>
+    <td>${((r.marks_obtained/r.max_marks)*100).toFixed(1)}%</td>
+    <td><span class="grade-badge ${gradeClass(r.grade)}">${r.grade}</span></td>
+    <td>Sem ${r.semester}</td></tr>`).join('');
+}
+
+async function loadEnterResult() {
+  const [students, subjects] = await Promise.all([api('/api/students'), api('/api/subjects')]);
+  document.getElementById('res-student').innerHTML = students.map(s=>`<option value="${s.id}">${s.name} (${s.roll_number})</option>`).join('');
+  document.getElementById('res-subject').innerHTML = subjects.map(s=>`<option value="${s.id}">${s.name} (${s.code})</option>`).join('');
+  document.getElementById('res-date').value = new Date().toISOString().split('T')[0];
+}
+
+async function submitResult() {
+  const body = {
+    student_id: +document.getElementById('res-student').value,
+    subject_id: +document.getElementById('res-subject').value,
+    marks_obtained: +document.getElementById('res-marks').value,
+    max_marks: +document.getElementById('res-max').value,
+    semester: +document.getElementById('res-sem').value,
+    exam_date: document.getElementById('res-date').value,
+  };
+  if (!body.marks_obtained || !body.semester) return showAlert('Fill all fields', 'error');
+  const d = await api('/api/results', { method:'POST', body:JSON.stringify(body) });
+  showAlert(d.message + ` — Grade: ${d.grade}`);
+}
+</script>
+</body>
+</html>

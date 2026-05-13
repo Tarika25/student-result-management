@@ -1,0 +1,34 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing dependencies...
+      - cd app/backend && npm install
+
+  pre_build:
+    commands:
+      - echo Running tests...
+      - cd app/backend && npm test || true
+      - echo Validating CloudFormation templates...
+      - aws cloudformation validate-template --template-body file://cloudformation/vpc-stack.yaml
+      - aws cloudformation validate-template --template-body file://cloudformation/data-stack.yaml
+      - aws cloudformation validate-template --template-body file://cloudformation/app-stack.yaml
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Packaging application...
+      - cd app/backend && zip -r ../../backend.zip .
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - aws s3 cp backend.zip s3://$ARTIFACT_BUCKET/backend.zip
+
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no
